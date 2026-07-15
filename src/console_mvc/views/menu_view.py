@@ -66,6 +66,13 @@ class MenuView:
             except ValueError:
                 view.print_error("입력 형식이 올바르지 않습니다.")
 
+            self._wait_for_return_to_menu()
+
+    @staticmethod
+    def _wait_for_return_to_menu() -> None:
+        print()
+        view.prompt_str("[메뉴로 돌아가기] Enter 키를 누르세요...")
+
     def _print_main_menu(self) -> None:
         samples = self._sample_controller.list_samples()
         sample_count = len(samples)
