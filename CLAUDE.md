@@ -5,6 +5,22 @@
 ## 프로젝트 개요
 
 콘솔 기반 MVC(Model-View-Controller) 애플리케이션입니다. Python 가상환경(`.venv`)을 사용합니다.
+반도체 시료 생산주문관리 시스템 PoC이며 상세 요구사항은 `S_Semi_Project_PRD.md`를 참고합니다.
+
+## 아키텍처: 계층별 책임 분리
+
+- **Model** (`src/console_mvc/models/`): 데이터 구조(dataclass)와 저장소(CRUD)만 담당합니다.
+  승인 로직, 생산량 계산 등 비즈니스 규칙은 포함하지 않습니다.
+- **Controller** (`src/console_mvc/controllers/`): 유스케이스별로 파일을 분리(단일 책임)하고,
+  Model 저장소를 조합해 기능 명세를 구현합니다. 콘솔 입출력에 의존하지 않아 pytest로
+  독립적으로 테스트할 수 있어야 합니다.
+- **View** (`src/console_mvc/views/`): 입력 수집/출력 포맷팅만 담당하며 비즈니스 로직을
+  포함하지 않습니다. Controller가 반환한 순수 데이터를 표시합니다.
+- **`app.py`**: 위 세 계층을 조립하는 조립부(composition root)이자 콘솔 메인 루프입니다.
+- 데이터는 메모리 내(In-memory)에서만 관리합니다. 파일/DB 영속성은 별도의
+  `DataPersistence` PoC 저장소의 몫이므로 이 저장소에 추가하지 않습니다.
+- 생산 라인 시간은 실시간이 아닌 턴/틱 기반(`ProductionLine.tick(minutes)`)으로 진행되는
+  결정적(deterministic) 방식을 사용합니다. 테스트 용이성을 위한 결정입니다.
 
 ## 커밋 컨벤션
 
