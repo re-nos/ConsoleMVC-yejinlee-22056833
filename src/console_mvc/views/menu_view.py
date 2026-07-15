@@ -10,8 +10,11 @@ from console_mvc.errors import DomainError
 from console_mvc.models.order import OrderStatus
 from console_mvc.views import colors
 from console_mvc.views import console_view as view
+from console_mvc.views.text_width import pad
 
 _SEPARATOR = "-" * 71
+_STAT_LABEL_WIDTH = 28
+_MENU_LABEL_WIDTH = 18
 
 
 class MenuView:
@@ -74,14 +77,28 @@ class MenuView:
         print(colors.colorize("==================== S-Semi 생산주문관리 시스템 ====================", colors.TITLE))
         print(f"시스템 현황 {now}")
         print()
-        print(f"등록 시료   {sample_count}종      총 재고    {total_stock} ea")
-        print(f"전체 주문   {total_order_count}건      생산라인    {waiting_count}건 대기")
+        print(self._stat_line("등록 시료", f"{sample_count}종", "총 재고", f"{total_stock} ea"))
+        print(self._stat_line("전체 주문", f"{total_order_count}건", "생산라인", f"{waiting_count}건 대기"))
         print(colors.colorize(_SEPARATOR, colors.SEPARATOR))
-        print(f"{colors.colorize('[1]', colors.HEADER)} 시료 관리               {colors.colorize('[2]', colors.HEADER)} 시료 주문")
-        print(f"{colors.colorize('[3]', colors.HEADER)} 주문 승인/거절           {colors.colorize('[4]', colors.HEADER)} 모니터링")
-        print(f"{colors.colorize('[5]', colors.HEADER)} 생산 라인               {colors.colorize('[6]', colors.HEADER)} 출고 처리")
-        print(f"{colors.colorize('[0]', colors.HEADER)} 종료")
+        print(self._menu_row("1", "시료 관리", "2", "시료 주문"))
+        print(self._menu_row("3", "주문 승인/거절", "4", "모니터링"))
+        print(self._menu_row("5", "생산 라인", "6", "출고 처리"))
+        print(self._menu_item("0", "종료"))
         print(colors.colorize(_SEPARATOR, colors.SEPARATOR))
+
+    @staticmethod
+    def _stat_line(label1: str, value1: str, label2: str, value2: str) -> str:
+        left = pad(f"{label1}   {value1}", _STAT_LABEL_WIDTH)
+        return f"{left}{label2}    {value2}"
+
+    @staticmethod
+    def _menu_item(num: str, label: str, width: int = 0) -> str:
+        bracket = colors.colorize(f"[{num}]", colors.HEADER)
+        return f"{bracket} {pad(label, width)}"
+
+    @classmethod
+    def _menu_row(cls, num1: str, label1: str, num2: str, label2: str) -> str:
+        return cls._menu_item(num1, label1, _MENU_LABEL_WIDTH) + cls._menu_item(num2, label2)
 
     def _handle_sample_menu(self) -> None:
         view.print_section_title("[시료 관리]")
