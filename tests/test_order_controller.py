@@ -47,3 +47,14 @@ def test_place_order_increments_id(sample_controller, controller):
     order2 = controller.place_order("S1", "카이스트", 3)
 
     assert order2.id == order1.id + 1
+
+
+def test_list_by_status_filters_correctly(sample_controller, controller):
+    sample_controller.register_sample("S1", "SiC Wafer", 10.0, 0.9)
+    order = controller.place_order("S1", "고려대학교", 5)
+
+    reserved = controller.list_by_status(OrderStatus.RESERVED)
+    confirmed = controller.list_by_status(OrderStatus.CONFIRMED)
+
+    assert reserved == [order]
+    assert confirmed == []
