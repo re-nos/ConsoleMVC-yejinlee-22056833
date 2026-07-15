@@ -1,5 +1,7 @@
 import sys
 
+import colorama
+
 from console_mvc.controllers.approval_controller import ApprovalController
 from console_mvc.controllers.monitoring_controller import MonitoringController
 from console_mvc.controllers.order_controller import OrderController
@@ -29,6 +31,8 @@ def build_menu_view() -> MenuView:
 def main() -> None:
     # Windows 콘솔 기본 코드페이지(cp949)에서 한글이 깨지는 것을 방지
     sys.stdout.reconfigure(encoding="utf-8")
+    # Windows 콘솔에서도 ANSI 컬러 코드가 정상 동작하도록 변환
+    colorama.init(autoreset=True)
     build_menu_view().run()
 
 

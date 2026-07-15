@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from console_mvc.controllers.approval_controller import ApprovalController
 from console_mvc.controllers.monitoring_controller import MonitoringController
 from console_mvc.controllers.order_controller import OrderController
@@ -6,19 +8,10 @@ from console_mvc.controllers.sample_controller import SampleController
 from console_mvc.controllers.shipment_controller import ShipmentController
 from console_mvc.errors import DomainError
 from console_mvc.models.order import OrderStatus
+from console_mvc.views import colors
 from console_mvc.views import console_view as view
 
-_MAIN_MENU = """
-==================== S-Semi 생산주문관리 시스템 ====================
-1. 시료 관리
-2. 시료 주문
-3. 주문 승인/거절
-4. 모니터링
-5. 생산 라인
-6. 출고 처리
-0. 종료
-=====================================================================
-"""
+_SEPARATOR = "-" * 71
 
 
 class MenuView:
@@ -51,7 +44,7 @@ class MenuView:
         }
 
         while True:
-            print(_MAIN_MENU)
+            self._print_main_menu()
             choice = view.prompt_str("메뉴 선택> ")
 
             if choice == "0":
@@ -70,8 +63,34 @@ class MenuView:
             except ValueError:
                 view.print_error("입력 형식이 올바르지 않습니다.")
 
+    def _print_main_menu(self) -> None:
+        samples = self._sample_controller.list_samples()
+        sample_count = len(samples)
+        total_stock = sum(s.stock for s in samples)
+        total_order_count = sum(self._monitoring_controller.count_by_status().values())
+        waiting_count = len(self._production_controller.waiting_jobs())
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        print(colors.colorize("==================== S-Semi 생산주문관리 시스템 ====================", colors.TITLE))
+        print(f"시스템 현황 {now}")
+        print()
+        print(f"등록 시료   {sample_count}종      총 재고    {total_stock} ea")
+        print(f"전체 주문   {total_order_count}건      생산라인    {waiting_count}건 대기")
+        print(colors.colorize(_SEPARATOR, colors.SEPARATOR))
+        print(f"{colors.colorize('[1]', colors.HEADER)} 시료 관리               {colors.colorize('[2]', colors.HEADER)} 시료 주문")
+        print(f"{colors.colorize('[3]', colors.HEADER)} 주문 승인/거절           {colors.colorize('[4]', colors.HEADER)} 모니터링")
+        print(f"{colors.colorize('[5]', colors.HEADER)} 생산 라인               {colors.colorize('[6]', colors.HEADER)} 출고 처리")
+        print(f"{colors.colorize('[0]', colors.HEADER)} 종료")
+        print(colors.colorize(_SEPARATOR, colors.SEPARATOR))
+
     def _handle_sample_menu(self) -> None:
-        print("\n[시료 관리] 1. 등록  2. 목록  3. 이름 검색")
+        view.print_section_title("[시료 관리]")
+        print(
+            f"{colors.colorize('[1]', colors.HEADER)} 등록  "
+            f"{colors.colorize('[2]', colors.HEADER)} 목록  "
+            f"{colors.colorize('[3]', colors.HEADER)} 이름 검색"
+        )
+        print(colors.colorize(_SEPARATOR, colors.SEPARATOR))
         choice = view.prompt_str("선택> ")
 
         if choice == "1":
@@ -104,14 +123,14 @@ class MenuView:
             return
 
         order_id = view.prompt_int("승인/거절할 주문 ID: ")
-        action = view.prompt_str("승인(a) / 거절(r): ").lower()
+        action = view.prompt_str("[Y] 승인 / [N] 거절: ").strip().lower()
 
-        if action == "a":
+        if action == "y":
             order = self._approval_controller.approve(order_id)
-        elif action == "r":
+        elif action == "n":
             order = self._approval_controller.reject(order_id)
         else:
-            view.print_error("'a' 또는 'r'을 입력하세요.")
+            view.print_error("'Y' 또는 'N'을 입력하세요.")
             return
 
         view.print_info(f"주문 {order.id} 상태가 {order.status.value}로 변경되었습니다.")
